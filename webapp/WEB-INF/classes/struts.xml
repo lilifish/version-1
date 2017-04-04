@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+	<constant name="struts.devMode" value="true" />
+	<!-- 表单使用简单样式 -->
+	<constant name="struts.ui.theme" value="simple" />
+	<!-- struts.action.extension=action,, -->
+	<!-- 防止*.css,*.js,*.png访问OpenSessionInViewFilter -->
+	<constant name="struts.action.extension" value="action" />
+	<!-- 默认上传文件的大小struts.multipart.maxSize=2097152=2*1024*1024 -->
+	<constant name="struts.multipart.maxSize" value="5242880" />
+	<!-- 修改国际化控制为中文环境，必须停止tomcat，在添加(因为只有唯一一次加载机会) -->
+	<constant name="struts.locale" value="zh_CN" />
+
+	<!-- package元素定义顺序：result-types?,interceptors?,default-interceptor-ref?,default-action-ref?, -->
+	<!-- default-class-ref?,global-results?,global-exception-mappings?,action* -->
+	<package name="default" namespace="/" extends="struts-default,json-default">
+
+		<!-- 全局返回结果视图 -->
+		<global-results>
+			<!-- 显示登录页面 -->
+			<result name="login">/WEB-INF/views/login.jsp</result>
+			<!-- 重定向到main -->
+			<!-- 前面的main代表是返回的视图名称，后面的main代表一个全新url请求 -->
+			<result name="main" type="redirectAction">main</result>
+			
+			<!-- 返回json类型 -->
+			<!-- 1.继承<package name="default" namespace="/" extends="struts-default,json-default"> -->
+			<!-- <result-type name="json" class="org.apache.struts2.json.JSONResult"/> -->
+			<result name="json" type="json">
+				<!-- 2.默认输出当前action的get方法的内容 -->
+				<!-- 3.修改指定输出的对象,从map栈找key==map的对象 -->
+				<!-- private String root; -->
+				<param name="root">#map</param>
+				<!-- 4.排除空的属性不输出 -->
+				<!-- private boolean excludeNullProperties = false; -->
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</global-results>
+
+		<!-- 主页 -->
+		<action name="main_*" class="mainAction" method="{1}">
+			<result>/WEB-INF/views/main.jsp</result>
+			<result name="right">/WEB-INF/views/right.jsp</result>
+		</action>
+
+		<!-- 登录 -->
+		<!-- 视图全部找global-results> -->
+		<action name="login_*" class="loginAction" method="{1}" />
+
+		<action name="*_*" class="{1}Action" method="{2}">
+			<!-- 列表：默认success视图，默认转发 -->
+			<result>/WEB-INF/views/{1}/{1}.jsp</result>
+			<!-- <result>/WEB-INF/views/employee/employee.jsp</result> -->
+			<!-- 显示方法对应的页面：bill方法，返回bill视图，默认转发 -->
+			<result name="{2}">/WEB-INF/views/{1}/{1}_{2}.jsp</result>
+			<!-- 显示编辑页面：input视图，默认转发 -->
+			<result name="input">/WEB-INF/views/{1}/{1}_input.jsp</result>
+	
+			<result name="reload" type="redirectAction">
+				<!-- protected String actionName;默认参数，url地址 ,DEFAULT_PARAM -->
+				<param name="actionName">{1}</param>
+				<!-- protected String namespace; 命名空间，必须/开头 -->
+				<!-- <param name="namespace">/crm</param> -->
+				<!-- protected String method;,action的方法 -->
+				<!-- <param name="method">delete</param> -->
+				<!-- 额外的参数：取当前action的属性值，还是使用el表达式 :获取当前action的getBaseQuery.getCurrentPage() -->
+				<!-- 取栈顶的第二个employeeAction -->
+				<param name="baseQuery.currentPage">${baseQuery.currentPage}</param>
+				<param name="baseQuery.pageSize">${baseQuery.pageSize}</param>
+				<!-- <param name="baseQuery.username">${baseQuery.username}</param> -->
+				<!-- <param name="baseQuery.email">${baseQuery.email}</param> -->
+				<!-- <param name="baseQuery.deptId">${baseQuery.deptId}</param> -->
+				<!-- 取栈顶的第1个employee -->
+				<param name="id">${id}</param>
+			</result>
+		</action>
+	</package>
+
+</struts>
